@@ -36,8 +36,8 @@ export default function Register() {
   }
 
   return (
-    <div className="register-container">
-      <h1>Crear Cuenta</h1>
+    <div className="register-container" style={{background: '#ffffff', padding: '10px', borderRadius: '15px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)', animation: 'aparecer 0.5s ease-in-out',margin:'200px'}}>
+      <h1 style={{textAlign: 'center', marginBottom: '20px', color: '#333'}}>Crear Cuenta</h1>
 
       <form onSubmit={handleSubmit}>
         <Input
@@ -79,7 +79,7 @@ export default function Register() {
         </Button>
       </form>
 
-      <p>
+      <p style={{color:'black'}}>
         ¿Ya tienes cuenta? <Link to="/login">Inicia sesión</Link>
       </p>
     </div>

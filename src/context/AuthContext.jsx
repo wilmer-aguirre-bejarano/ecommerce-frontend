@@ -19,8 +19,8 @@ export function AuthProvider({ children }) {
   }, []);
 
   // Login
-  async function login(email, password) {
-    const response = await api.post('/login', { email, password });
+  async function login(email, password, captchaText, captchaKey) {
+    const response = await api.post('/login', { email, password, captcha_text: captchaText,captcha_key: captchaKey});
     const { user, token } = response.data;
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(user));
@@ -50,6 +50,7 @@ export function AuthProvider({ children }) {
     } catch (error) {
       console.error('Error al hacer logout:', error);
     } finally {
+      // 3. Esto se ejecuta siempre: Limpia el navegador pase lo que pase en el servidor
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       setUser(null);

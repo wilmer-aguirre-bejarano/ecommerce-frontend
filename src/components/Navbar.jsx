@@ -18,6 +18,7 @@ export default function Navbar() {
   return (
     <nav className="navbar">
       <Link to="/">Mi E-commerce  </Link>
+      <Link to="/portAca">Portafolio Academico</Link>
       <Link to="/products">Productos  </Link>
       {/* 🚨 IMPORTANTE ENTENDERLO 🚨
           El contador solo aparece si hay items.

@@ -18,9 +18,9 @@ export default function ProductCard({ product }) {
   return (
     <Card>
       {/* Imagen del producto o placeholder */}
-      {product.image_url ? (
+      {product.image ? (
         <img 
-          src={product.image_url} 
+          src={product.image} 
           alt={product.name}
           style={{ width: '100%', height: '200px', objectFit: 'cover' }}
         />

@@ -9,6 +9,7 @@ import Products from './pages/Products';
 import Cart from './pages/Cart';
 import ProductDetail from './pages/ProductsDetail';
 import Dashboard from './pages/Admin/Dashboard';
+import PortAca from './pages/PortAcademico';
 import ProductForm from './pages/Admin/ProductForm';
 import Orders from './pages/Orders';
 import OrderDetail from './pages/OrderDetail';
@@ -42,6 +43,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/products" element={<Products />} />
         <Route path="/products/:id" element={<ProductDetail />} />
+        <Route path="/portAca" element={<PortAca/>}/>
         {/*Rutas solo para admin */}
         <Route path="/admin" element={<AdminRoute>  <Dashboard/> </AdminRoute>} />
         <Route path="/admin/products/new" element={<AdminRoute> <ProductForm/></AdminRoute>} />

@@ -1,5 +1,6 @@
 // src/pages/Admin/ProductForm.jsx
 import { useState, useEffect } from 'react';
+import axios from 'axios'; // <-- Añade esta línea al principio del archivo
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import api from '../../api/axios';
 import Input from '../../components/Input.jsx';
@@ -28,10 +29,12 @@ export default function ProductForm() {
     const [description, setDescription] = useState('');
     const [price, setPrice] = useState('');
     const [stock, setStock] = useState('');
-    const [imageUrl, setImageUrl] = useState('');
+    //const [imageUrl, setImageUrl] = useState(''); //hug de la imagen
     const [categoryId, setCategoryId] = useState(''); // ← Lo añadimos, es requerido por la API
     const [categories, setCategories] = useState([]); // ← Lista de categorías para el select
-
+    // 1. Define los estados al inicio del componente
+    const [imagenArchivo, setImagenArchivo] = useState(null); // Guarda el archivo BINARIO para enviar al servidor
+    const [previewUrl, setPreviewUrl] = useState(''); // Reemplaza a imageUrl para mostrar la vista previa en la web
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -60,7 +63,7 @@ export default function ProductForm() {
                 setDescription(p.description || '');
                 setPrice(p.price);
                 setStock(p.stock);
-                setImageUrl(p.image_url || '');
+                setImageUrl(p.file || ''); //p.image_url ami criterio
                 setCategoryId(p.category_id);
             } catch (err) {
                 setError('No se pudo cargar el producto.');
@@ -80,35 +83,45 @@ export default function ProductForm() {
     // 3. Llama a la API (POST si crea, PUT si edita).
     // 4. Redirige al dashboard si todo sale bien.
     // 5. Muestra errores si falla.
+   
+   
     async function handleSubmit(e) {
-        e.preventDefault(); // ← CRÍTICO: sin esto, la página se recarga
+        e.preventDefault(); 
         setError('');
         setLoading(true);
 
-        const payload = {
-            name,
-            description: description || null,  // Si está vacío, enviamos null
-            price: parseFloat(price),           // Convertimos string a número
-            stock: parseInt(stock, 10),         // Convertimos string a entero
-            image_url: imageUrl || null,
-            category_id: parseInt(categoryId, 10),
+        const formData = new FormData();
+
+        formData.append('name', name);
+        formData.append('description', description || '');
+        formData.append('price', parseFloat(price));
+        formData.append('stock', parseInt(stock, 10));
+        formData.append('category_id', parseInt(categoryId, 10));
+
+        if (imagenArchivo) {
+            formData.append('image', imagenArchivo); 
+        }
+
+        // El truco definitivo para Laravel: Headers para multipart/form-data
+        const config = {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
         };
 
         try {
             if (isEdit) {
-                // Actualizar producto existente
-                await api.put(`/products/${id}`, payload);
+                // TRUCO EXCLUSIVO PARA ARCHIVOS: Enviamos por POST pero simulamos un PUT
+                formData.append('_method', 'PUT'); 
+                await api.post(`/products/${id}`, formData, config); 
             } else {
                 // Crear nuevo producto
-                await api.post('/products', payload);
+                await api.post('/products', formData, config);
             }
+
             // Redirige al dashboard tras guardar
             navigate('/admin');
         } catch (err) {
-            // 🚨 IMPORTANTE ENTENDERLO 🚨
-            // Laravel devuelve errores de validación en:
-            //   err.response.data.errors = { campo: ['mensaje1', 'mensaje2'] }
-            // Este patrón extrae el primer error de cualquier campo.
             if (err.response?.data?.errors) {
                 const firstError = Object.values(err.response.data.errors)[0][0];
                 setError(firstError);
@@ -121,6 +134,15 @@ export default function ProductForm() {
             setLoading(false);
         }
     }
+
+    // 2. El evento onChange de tu Input HTML debe ser así:
+    const handleFileChange = (e) => {
+        const file = e.target.files[0]; // Captura el primer archivo seleccionado
+        if (file) {
+            setImagenArchivo(file); // Guarda el archivo binario
+            setPreviewUrl(URL.createObjectURL(file)); // Crea un enlace temporal interno solo para ver la foto en React
+        }
+    };
 
     return (
         <div className="form-container">
@@ -182,19 +204,29 @@ export default function ProductForm() {
                     </select>
                 </div>
 
+                {/* //imagens desde el escritorio */}
+                <Input
+                    type="file"
+                    accept="image/*"
+                    label="URL de la imagen (opcional)"
+                    //value={imageUrl}
+                    onChange={handleFileChange}//Guardas el archivo en el estado
+                />
+
+                {/* //imagen de campo de texto para la URL
                 <Input
                     type="url"
                     label="URL de la imagen (opcional)"
                     value={imageUrl}
                     onChange={(e) => setImageUrl(e.target.value)}
-                />
+                /> */}
 
                 {/* Vista previa de la imagen si se ha puesto una URL */}
-                {imageUrl && (
+                {previewUrl && (
                     <div style={{ margin: '10px 0' }}>
                         <p style={{ fontSize: '12px', color: '#666' }}>Vista previa:</p>
                         <img
-                            src={imageUrl}
+                            src={previewUrl}
                             alt="Vista previa"
                             style={{ maxWidth: '200px', maxHeight: '200px', objectFit: 'cover' }}
                             onError={(e) => { e.target.style.display = 'none'; }}
